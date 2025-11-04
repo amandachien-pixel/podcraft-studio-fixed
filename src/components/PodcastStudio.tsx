@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { auth, googleProvider, db } from '@/lib/firebase';
 import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, User } from 'firebase/auth';
 import {
@@ -94,58 +94,24 @@ export default function PodcastStudio() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0]);
 
-  // Auth listener
-  useEffect(() => {
-    // 檢查 redirect 登入結果
-    const checkRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          toast.success('登入成功！');
-        }
-      } catch (error) {
-        console.error('Redirect login error:', error);
-        const authError = error as { code?: string; message?: string };
-        if (authError.code === 'auth/unauthorized-domain') {
-          toast.error('授權域名設置錯誤，請聯繫管理員');
-        } else if (authError.code === 'auth/popup-blocked') {
-          toast.error('彈窗被阻擋，請允許彈窗或使用其他瀏覽器');
-        } else {
-          toast.error(`登入失敗：${authError.message || '未知錯誤'}`);
-        }
-      }
-    };
-
-    checkRedirectResult();
-
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-      setLoading(false);
-
-      if (user) {
-        userActivityService.logLogin(
-          user.uid,
-          user.email || 'unknown',
-          user.displayName || 'Unknown User'
-        );
-        loadUserData(user.uid);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   // Helper function to safely convert timestamp to Date
-  const toDate = (timestamp: any): Date => {
+  const toDate = useCallback((timestamp: unknown): Date => {
     if (!timestamp) return new Date();
     if (timestamp instanceof Date) return timestamp;
-    if (typeof timestamp?.toDate === 'function') return timestamp.toDate();
-    if (timestamp?.seconds) return new Date(timestamp.seconds * 1000);
+
+    // Check if it's a Firestore Timestamp with toDate method
+    const tsWithToDate = timestamp as { toDate?: () => Date };
+    if (typeof tsWithToDate.toDate === 'function') return tsWithToDate.toDate();
+
+    // Check if it has seconds property (Firestore Timestamp)
+    const tsWithSeconds = timestamp as { seconds?: number };
+    if (tsWithSeconds.seconds) return new Date(tsWithSeconds.seconds * 1000);
+
     return new Date();
-  };
+  }, []);
 
   // Load user data
-  const loadUserData = async (userId: string) => {
+  const loadUserData = useCallback(async (userId: string) => {
     try {
       // Load Show Bibles
       const biblesQuery = query(
@@ -196,7 +162,48 @@ export default function PodcastStudio() {
         toast.error(`載入資料時發生錯誤：${firestoreError.message || '未知錯誤'}`, { duration: 5000 });
       }
     }
-  };
+  }, [toDate]);
+
+  // Auth listener
+  useEffect(() => {
+    // 檢查 redirect 登入結果
+    const checkRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          toast.success('登入成功！');
+        }
+      } catch (error) {
+        console.error('Redirect login error:', error);
+        const authError = error as { code?: string; message?: string };
+        if (authError.code === 'auth/unauthorized-domain') {
+          toast.error('授權域名設置錯誤，請聯繫管理員');
+        } else if (authError.code === 'auth/popup-blocked') {
+          toast.error('彈窗被阻擋，請允許彈窗或使用其他瀏覽器');
+        } else {
+          toast.error(`登入失敗：${authError.message || '未知錯誤'}`);
+        }
+      }
+    };
+
+    checkRedirectResult();
+
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+      setLoading(false);
+
+      if (user) {
+        userActivityService.logLogin(
+          user.uid,
+          user.email || 'unknown',
+          user.displayName || 'Unknown User'
+        );
+        loadUserData(user.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [loadUserData]);
 
   // Auth functions
   const handleLogin = async () => {
@@ -229,7 +236,7 @@ export default function PodcastStudio() {
     try {
       if (editingBible?.id) {
         // Update existing
-        const bibleRef = doc(db, 'show_bibles', editingBible.id);
+        const bibleRef = doc(db, 'showBibles', editingBible.id);
         await updateDoc(bibleRef, {
           ...bibleData,
           updatedAt: Timestamp.now()
@@ -237,7 +244,7 @@ export default function PodcastStudio() {
         toast.success('節目聖經已更新');
       } else {
         // Create new
-        await addDoc(collection(db, 'show_bibles'), {
+        await addDoc(collection(db, 'showBibles'), {
           ...bibleData,
           userId: user.uid,
           createdAt: Timestamp.now(),
@@ -267,7 +274,7 @@ export default function PodcastStudio() {
     if (!user || !confirm('確定要刪除此節目聖經嗎？')) return;
 
     try {
-      await deleteDoc(doc(db, 'show_bibles', bibleId));
+      await deleteDoc(doc(db, 'showBibles', bibleId));
       toast.success('節目聖經已刪除');
 
       await userActivityService.logActivity(
