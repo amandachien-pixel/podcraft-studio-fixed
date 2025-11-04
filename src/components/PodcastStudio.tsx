@@ -167,7 +167,19 @@ export default function PodcastStudio() {
       setProjects(projectsData);
     } catch (error) {
       console.error('Error loading user data:', error);
-      toast.error('載入資料時發生錯誤');
+      const firestoreError = error as { code?: string; message?: string };
+
+      // 提供更詳細的錯誤訊息
+      if (firestoreError.code === 'permission-denied') {
+        toast.error('❌ Firestore 權限被拒：請檢查安全規則設置', { duration: 6000 });
+        console.error('請確認 Firestore 安全規則已正確設置。請參考 firestore.rules 文件。');
+      } else if (firestoreError.code === 'unavailable') {
+        toast.error('❌ Firestore 服務無法連接：請檢查網絡或數據庫是否已啟用', { duration: 6000 });
+      } else if (firestoreError.message?.includes('Missing or insufficient permissions')) {
+        toast.error('❌ Firestore 權限不足：請確認數據庫已創建並設置安全規則', { duration: 6000 });
+      } else {
+        toast.error(`載入資料時發生錯誤：${firestoreError.message || '未知錯誤'}`, { duration: 5000 });
+      }
     }
   };
 
