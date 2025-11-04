@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 節目聖經 (Show Bibles)
+    match /show_bibles/{bibleId} {
+      // 允許已登入用戶讀取自己的節目聖經
+      allow read: if request.auth != null &&
+                     (resource == null || resource.data.userId == request.auth.uid);
+
+      // 允許已登入用戶創建自己的節目聖經
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // 允許已登入用戶更新和刪除自己的節目聖經
+      allow update, delete: if request.auth != null &&
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // 項目 (Projects)
+    match /projects/{projectId} {
+      // 允許已登入用戶讀取自己的項目
+      allow read: if request.auth != null &&
+                     (resource == null || resource.data.userId == request.auth.uid);
+
+      // 允許已登入用戶創建自己的項目
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // 允許已登入用戶更新和刪除自己的項目
+      allow update, delete: if request.auth != null &&
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // 用戶活動記錄 (User Activities)
+    match /userActivities/{activityId} {
+      // 允許已登入用戶讀取自己的活動記錄
+      allow read: if request.auth != null &&
+                     (resource == null || resource.data.userId == request.auth.uid);
+
+      // 允許已登入用戶創建自己的活動記錄
+      allow create: if request.auth != null &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // 允許已登入用戶更新和刪除自己的活動記錄
+      allow update, delete: if request.auth != null &&
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // 拒絕其他所有請求
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
