@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { auth, googleProvider, db } from '@/lib/firebase';
-import { signInWithPopup, signOut, User } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, User } from 'firebase/auth';
 import {
   collection,
   addDoc,
@@ -96,6 +96,27 @@ export default function PodcastStudio() {
 
   // Auth listener
   useEffect(() => {
+    // 檢查 redirect 登入結果
+    const checkRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          toast.success('登入成功！');
+        }
+      } catch (error: any) {
+        console.error('Redirect login error:', error);
+        if (error.code === 'auth/unauthorized-domain') {
+          toast.error('授權域名設置錯誤，請聯繫管理員');
+        } else if (error.code === 'auth/popup-blocked') {
+          toast.error('彈窗被阻擋，請允許彈窗或使用其他瀏覽器');
+        } else {
+          toast.error(`登入失敗：${error.message}`);
+        }
+      }
+    };
+
+    checkRedirectResult();
+
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
       setLoading(false);
@@ -152,8 +173,8 @@ export default function PodcastStudio() {
   // Auth functions
   const handleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-      toast.success('登入成功！');
+      // 優先使用 Redirect 模式（更穩定，不會被瀏覽器阻擋）
+      await signInWithRedirect(auth, googleProvider);
     } catch (error) {
       console.error('Login error:', error);
       toast.error('登入失敗，請重試');
