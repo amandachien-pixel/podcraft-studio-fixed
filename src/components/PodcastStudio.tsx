@@ -135,6 +135,15 @@ export default function PodcastStudio() {
     return () => unsubscribe();
   }, []);
 
+  // Helper function to safely convert timestamp to Date
+  const toDate = (timestamp: any): Date => {
+    if (!timestamp) return new Date();
+    if (timestamp instanceof Date) return timestamp;
+    if (typeof timestamp?.toDate === 'function') return timestamp.toDate();
+    if (timestamp?.seconds) return new Date(timestamp.seconds * 1000);
+    return new Date();
+  };
+
   // Load user data
   const loadUserData = async (userId: string) => {
     try {
@@ -144,12 +153,15 @@ export default function PodcastStudio() {
         where('userId', '==', userId)
       );
       const biblesSnapshot = await getDocs(biblesQuery);
-      const biblesData = biblesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      })) as ShowBible[];
+      const biblesData = biblesSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: toDate(data.createdAt),
+          updatedAt: toDate(data.updatedAt)
+        };
+      }) as ShowBible[];
       setShowBibles(biblesData);
 
       // Load Projects
@@ -158,12 +170,15 @@ export default function PodcastStudio() {
         where('userId', '==', userId)
       );
       const projectsSnapshot = await getDocs(projectsQuery);
-      const projectsData = projectsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      })) as Project[];
+      const projectsData = projectsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: toDate(data.createdAt),
+          updatedAt: toDate(data.updatedAt)
+        };
+      }) as Project[];
       setProjects(projectsData);
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -214,7 +229,7 @@ export default function PodcastStudio() {
     try {
       if (editingBible?.id) {
         // Update existing
-        const bibleRef = doc(db, 'showBibles', editingBible.id);
+        const bibleRef = doc(db, 'show_bibles', editingBible.id);
         await updateDoc(bibleRef, {
           ...bibleData,
           updatedAt: Timestamp.now()
@@ -222,7 +237,7 @@ export default function PodcastStudio() {
         toast.success('節目聖經已更新');
       } else {
         // Create new
-        await addDoc(collection(db, 'showBibles'), {
+        await addDoc(collection(db, 'show_bibles'), {
           ...bibleData,
           userId: user.uid,
           createdAt: Timestamp.now(),
@@ -252,7 +267,7 @@ export default function PodcastStudio() {
     if (!user || !confirm('確定要刪除此節目聖經嗎？')) return;
 
     try {
-      await deleteDoc(doc(db, 'showBibles', bibleId));
+      await deleteDoc(doc(db, 'show_bibles', bibleId));
       toast.success('節目聖經已刪除');
 
       await userActivityService.logActivity(
