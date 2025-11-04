@@ -103,14 +103,15 @@ export default function PodcastStudio() {
         if (result?.user) {
           toast.success('登入成功！');
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error('Redirect login error:', error);
-        if (error.code === 'auth/unauthorized-domain') {
+        const authError = error as { code?: string; message?: string };
+        if (authError.code === 'auth/unauthorized-domain') {
           toast.error('授權域名設置錯誤，請聯繫管理員');
-        } else if (error.code === 'auth/popup-blocked') {
+        } else if (authError.code === 'auth/popup-blocked') {
           toast.error('彈窗被阻擋，請允許彈窗或使用其他瀏覽器');
         } else {
-          toast.error(`登入失敗：${error.message}`);
+          toast.error(`登入失敗：${authError.message || '未知錯誤'}`);
         }
       }
     };
