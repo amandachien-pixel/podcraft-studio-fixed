@@ -140,7 +140,7 @@ export default function PodcastStudio() {
     try {
       // Load Show Bibles
       const biblesQuery = query(
-        collection(db, 'show_bibles'),
+        collection(db, 'showBibles'),
         where('userId', '==', userId)
       );
       const biblesSnapshot = await getDocs(biblesQuery);
@@ -214,7 +214,7 @@ export default function PodcastStudio() {
     try {
       if (editingBible?.id) {
         // Update existing
-        const bibleRef = doc(db, 'show_bibles', editingBible.id);
+        const bibleRef = doc(db, 'showBibles', editingBible.id);
         await updateDoc(bibleRef, {
           ...bibleData,
           updatedAt: Timestamp.now()
@@ -222,7 +222,7 @@ export default function PodcastStudio() {
         toast.success('節目聖經已更新');
       } else {
         // Create new
-        await addDoc(collection(db, 'show_bibles'), {
+        await addDoc(collection(db, 'showBibles'), {
           ...bibleData,
           userId: user.uid,
           createdAt: Timestamp.now(),
@@ -252,7 +252,7 @@ export default function PodcastStudio() {
     if (!user || !confirm('確定要刪除此節目聖經嗎？')) return;
 
     try {
-      await deleteDoc(doc(db, 'show_bibles', bibleId));
+      await deleteDoc(doc(db, 'showBibles', bibleId));
       toast.success('節目聖經已刪除');
 
       await userActivityService.logActivity(
