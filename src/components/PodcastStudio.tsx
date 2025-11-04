@@ -53,6 +53,11 @@ interface ShowBible {
   duration: string;
   sections: string;
   hostInfo: string;
+  characterSettings: string;      // 角色/人物設定
+  referenceShows: string;         // 參考節目
+  specialSegments: string;        // 特色環節
+  audioStyle: string;             // 音樂/音效
+  brandIdentity: string;          // 品牌定位
   createdAt: Date;
   updatedAt: Date;
 }
@@ -326,6 +331,11 @@ export default function PodcastStudio() {
 - 節目時長：${bible.duration}
 - 節目架構：${bible.sections}
 - 主持人資訊：${bible.hostInfo}
+- 角色/人物設定：${bible.characterSettings}
+- 參考節目：${bible.referenceShows}
+- 特色環節：${bible.specialSegments}
+- 音樂/音效：${bible.audioStyle}
+- 品牌定位：${bible.brandIdentity}
 
 【本集主題】
 - 單集標題：${project.title}
@@ -776,7 +786,12 @@ export default function PodcastStudio() {
       targetAudience: editingBible?.targetAudience || '',
       duration: editingBible?.duration || '',
       sections: editingBible?.sections || '',
-      hostInfo: editingBible?.hostInfo || ''
+      hostInfo: editingBible?.hostInfo || '',
+      characterSettings: editingBible?.characterSettings || '',
+      referenceShows: editingBible?.referenceShows || '',
+      specialSegments: editingBible?.specialSegments || '',
+      audioStyle: editingBible?.audioStyle || '',
+      brandIdentity: editingBible?.brandIdentity || ''
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -908,6 +923,76 @@ export default function PodcastStudio() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
                 placeholder="主持人背景、風格等資訊"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                角色/人物設定
+                <span className="text-xs text-gray-500 ml-2">（主持人個性、背景、來賓類型、角色互動方式）</span>
+              </label>
+              <textarea
+                value={formData.characterSettings}
+                onChange={(e) => setFormData({ ...formData, characterSettings: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={4}
+                placeholder="例如：&#10;• 主持人：熱情開朗的資深講者，擅長引導深度討論&#10;• 來賓類型：業界專家、實踐者&#10;• 互動方式：輕鬆對話，適時提問"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                參考節目
+                <span className="text-xs text-gray-500 ml-2">（參考的節目名稱、喜歡的風格元素）</span>
+              </label>
+              <textarea
+                value={formData.referenceShows}
+                onChange={(e) => setFormData({ ...formData, referenceShows: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+                placeholder="例如：&#10;• 《得到》- 知識性、節奏緊湊&#10;• 《冬吳相對論》- 深度對話、思考啟發"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                特色環節
+                <span className="text-xs text-gray-500 ml-2">（固定單元、互動環節）</span>
+              </label>
+              <textarea
+                value={formData.specialSegments}
+                onChange={(e) => setFormData({ ...formData, specialSegments: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+                placeholder="例如：&#10;• 開場問候：每集固定的暖場&#10;• 觀眾提問：選讀聽眾來信&#10;• 本週推薦：分享一個資源"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                音樂/音效
+                <span className="text-xs text-gray-500 ml-2">（開場音樂風格、背景音樂類型）</span>
+              </label>
+              <textarea
+                value={formData.audioStyle}
+                onChange={(e) => setFormData({ ...formData, audioStyle: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+                placeholder="例如：&#10;• 開場：輕快的吉他旋律&#10;• 背景：柔和的鋼琴音樂&#10;• 轉場：簡短的鐘聲"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                品牌定位
+                <span className="text-xs text-gray-500 ml-2">（節目口號、核心價值）</span>
+              </label>
+              <textarea
+                value={formData.brandIdentity}
+                onChange={(e) => setFormData({ ...formData, brandIdentity: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={4}
+                placeholder="例如：&#10;• 口號：「每日一刻，心靈充電」&#10;• 核心價值：真實、溫暖、啟發&#10;• 定位：陪伴聽眾成長的心靈夥伴"
               />
             </div>
 
